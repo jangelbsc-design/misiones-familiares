@@ -54,10 +54,9 @@
   .header h1 { font-size:20px; margin:0; }
   .header small { display:block; color:var(--muted); font-weight:600; }
   .header button { background:none; border:none; font-size:22px; cursor:pointer; padding:6px; }
+  .sync { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--muted); }
 
-  .hero {
-    text-align:center; padding:34px 10px 8px;
-  }
+  .hero { text-align:center; padding:34px 10px 8px; }
   .hero .logo { font-size:58px; }
   .hero h1 { font-size:26px; margin:10px 0 6px; }
   .hero p { color:var(--muted); margin:0 0 26px; font-size:15px; }
@@ -69,10 +68,7 @@
     border-top:1px solid #eceaf5; display:flex; z-index:50;
     max-width:520px; margin:0 auto;
   }
-  .tab {
-    flex:1; text-align:center; padding:9px 0 12px; cursor:pointer; color:var(--muted);
-    font-size:11px; font-weight:700; border:none; background:none;
-  }
+  .tab { flex:1; text-align:center; padding:9px 0 12px; cursor:pointer; color:var(--muted); font-size:11px; font-weight:700; border:none; background:none; }
   .tab .ico { font-size:22px; display:block; margin-bottom:2px; }
   .tab.on { color:var(--p1); }
   body.kid .tab.on { color:var(--k1); }
@@ -87,8 +83,7 @@
   body.kid .points-pill { background:linear-gradient(135deg,var(--k1),#f97316); box-shadow:0 6px 16px rgba(245,158,11,.35); }
 
   .kid { display:flex; align-items:center; gap:14px; }
-  .kid .ava { font-size:40px; width:56px; height:56px; display:flex; align-items:center; justify-content:center;
-    border-radius:16px; background:#f0edff; }
+  .kid .ava { font-size:40px; width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:16px; background:#f0edff; }
   .kid .pts { margin-left:auto; font-weight:800; font-size:18px; }
   .kid .pts b { color:var(--p1); }
   body.kid .kid .pts b { color:#f97316; }
@@ -97,8 +92,7 @@
   .task .ico,.reward .ico { font-size:32px; }
   .task .ttl,.reward .ttl { font-weight:700; font-size:16px; }
   .task .sub,.reward .sub { font-size:13px; color:var(--muted); font-weight:600; }
-  .task .pts { margin-left:auto; background:#eef9f4; color:#059669; font-weight:800;
-    padding:6px 12px; border-radius:999px; white-space:nowrap; }
+  .task .pts { margin-left:auto; background:#eef9f4; color:#059669; font-weight:800; padding:6px 12px; border-radius:999px; white-space:nowrap; }
 
   .req { display:flex; align-items:center; gap:10px; }
   .req .body { flex:1; }
@@ -131,8 +125,6 @@
   .fade { animation:fade .2s ease; }
   @keyframes fade { from { opacity:0; transform:translateY(6px);} to { opacity:1; transform:none;} }
 
-  .code-box { font-size:28px; letter-spacing:6px; font-weight:800; text-align:center; padding:16px; border:2px dashed var(--p1); border-radius:14px; color:var(--p1); }
-  body.kid .code-box { border-color:var(--k1); color:#f97316; }
   .row { display:flex; gap:10px; }
   .row > * { flex:1; }
   .kid-pick { display:flex; align-items:center; gap:12px; padding:14px; border-radius:14px; background:#fff; margin-bottom:10px; box-shadow:0 3px 12px rgba(31,35,51,.06); cursor:pointer; }
@@ -140,37 +132,31 @@
   .kid-pick b { font-size:17px; }
   .kid-pick small { color:var(--muted); font-weight:600; }
   .kid-pick .arrow { margin-left:auto; font-size:20px; color:var(--muted); }
+  .spin { display:inline-block; animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-/* ===== PEGA AQUI TU CONFIGURACION DE FIREBASE (paso 4 de la guia) ===== */
-const FIREBASE_CONFIG = {
-  apiKey: "PEGA_TU_API_KEY",
-  authDomain: "PEGA_TU_DOMINIO.firebaseapp.com",
-  databaseURL: "https://PEGA_TU_PROYECTO-default-rtdb.firebaseio.com",
-  projectId: "PEGA_TU_PROYECTO",
-  storageBucket: "PEGA_TU_PROYECTO.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "PEGA_TU_APP_ID"
+/* ===== CONFIGURACION DEL REPOSITORIO ===== */
+const GH = {
+  owner: "jangelbsc-design",
+  repo: "misiones-familiares",
+  branch: "main",
+  file: "datos.json"
 };
-/* ===================================================================== */
+/* ========================================= */
 
-const LS = { fam:"mf_familia", kid:"mf_kid", pin:"mf_pin" };
-const state = { famId:null, kidId:null, mode:null, data:null, tab:null, joinFamId:null };
-let db = null;
+const LS = { token:"mf_token", role:"mf_role", kid:"mf_kid" };
+const state = { token:null, role:null, kidId:null, mode:null, data:null, sha:null, tab:null, busy:false };
 
 const $app = document.getElementById("app");
 const $toast = document.getElementById("toast");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-const code = () => { const c="ABCDEFGHJKMNPQRSTUVWXYZ23456789", r=[]; for(let i=0;i<6;i++) r.push(c[Math.floor(Math.random()*c.length)]); return r.join(""); };
-const famRef = () => db.ref("familias/" + state.famId);
 const toast = m => { $toast.textContent=m; $toast.classList.add("show"); setTimeout(()=>$toast.classList.remove("show"),2200); };
 
 function confetti() {
@@ -183,162 +169,162 @@ function confetti() {
   }
 }
 
-function loadLocal(){
-  state.famId = localStorage.getItem(LS.fam) || null;
-  state.kidId = localStorage.getItem(LS.kid) || null;
+const API = "https://api.github.com/repos/" + GH.owner + "/" + GH.repo;
+const ghHeaders = () => ({ "Authorization":"Bearer " + state.token, "Accept":"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28" });
+
+function b64Encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64Decode(str){ return decodeURIComponent(escape(atob(str))); }
+
+async function readData(){
+  const res = await fetch(API + "/contents/" + GH.file + "?ref=" + GH.branch, { headers: ghHeaders() });
+  if(res.status === 404) return null;
+  if(!res.ok) throw new Error("Error de lectura (" + res.status + ")");
+  const j = await res.json();
+  state.sha = j.sha;
+  return JSON.parse(b64Decode(j.content));
 }
-function saveLocal(){ localStorage.setItem(LS.fam,state.famId); if(state.kidId) localStorage.setItem(LS.kid,state.kidId); }
-function logout(){ localStorage.clear(); location.reload(); }
+
+async function writeData(message){
+  const content = b64Encode(JSON.stringify(state.data));
+  const body = { message, content, branch: GH.branch };
+  if(state.sha) body.sha = state.sha;
+  const res = await fetch(API + "/contents/" + GH.file, {
+    method:"PUT", headers:{...ghHeaders(),"Content-Type":"application/json"}, body: JSON.stringify(body)
+  });
+  if(res.status === 409){ state.sha = null; return false; }
+  if(!res.ok) throw new Error("Error al guardar (" + res.status + ")");
+  const j = await res.json();
+  state.sha = j.content.sha;
+  return true;
+}
+
+async function mutate(applyFn){
+  for(let i=0;i<2;i++){
+    try{
+      const latest = await readData();
+      if(latest) state.data = latest;
+      const info = applyFn();
+      if(await writeData(info.message)){ render(); toast(info.toast); if(info.confetti) confetti(); return true; }
+    }catch(e){ toast(e.message); return false; }
+  }
+  toast("Conflicto de sincronización, intenta de nuevo");
+  return false;
+}
+
+async function poll(){
+  if(state.busy) return;
+  try{
+    const d = await readData();
+    if(d && JSON.stringify(d) !== JSON.stringify(state.data)){
+      state.data = d; render();
+    }
+  }catch(e){ /* silencioso */ }
+}
+
+function render(){ if(state.mode==="parent") renderParent(); else if(state.mode==="kid") renderKid(); }
 
 function boot(){
-  loadLocal();
-  if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith("PEGA_")){
-    renderConfigPending();
-    return;
-  }
-  try{
-    const app = firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.database();
-  }catch(e){ renderConfigPending("Hubo un error con la configuración: " + e.message); return; }
-  if(state.famId){
-    famRef().on("value", snap => {
-      state.data = snap.val();
-      if(!state.data){ localStorage.clear(); location.reload(); return; }
-      if(state.kidId && state.data.kids && state.data.kids[state.kidId]){ state.mode="kid"; renderKid(); }
-      else { state.mode="parent"; renderParent(); }
-    });
-  } else {
-    renderWelcome();
-  }
-}
-
-function renderConfigPending(err){
-  $app.innerHTML = `
-    <div class="hero">
-      <div class="logo logo-anim">🏰</div>
-      <h1>Misiones Familiares</h1>
-      <p>${err ? esc(err) : "Falta pegar la configuración de Firebase."}<br>Revisa la guía en el chat para completar el paso 4.</p>
-      <div class="card"><b>Código de la familia:</b> se genera al crear la familia. Para conectar varios celulares, todos deben tener el MISMO código de familia y la MISMA configuración de Firebase.</div>
-    </div>`;
-}
-
-function renderWelcome(){
-  $app.innerHTML = `
-    <div class="hero">
-      <div class="logo logo-anim">🏰</div>
-      <h1>Misiones Familiares</h1>
-      <p>¡Tareas que se convierten en premios!</p>
-      <button class="btn" onclick="goCreate()">✨ Crear mi familia</button>
-      <div style="height:12px"></div>
-      <button class="btn ghost" onclick="goJoin()">🔑 Unirme con un código</button>
-    </div>`;
-}
-
-function goCreate(){
-  $app.innerHTML = `
-    <div class="fade">
-      <div class="header"><button onclick="renderWelcome()">←</button><h1>Crear familia</h1></div>
-      <div class="card">
-        <label>Nombre de la familia</label>
-        <input id="fname" placeholder="Ej. Familia Bustos" autocomplete="off">
-        <label>PIN de papá/mamá (4 números)</label>
-        <input id="fpin" type="password" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
-        <label>Tu nombre</label>
-        <input id="fadmin" placeholder="Ej. José" autocomplete="off">
-        <div style="height:14px"></div>
-        <button class="btn" onclick="doCreate()">Crear familia</button>
-      </div>
-      <div class="card" style="font-size:13px;color:var(--muted)">Después de crear, verás el <b>código de familia</b>: se lo das a los chicos para entrar desde sus celulares.</div>
-    </div>`;
-}
-
-function doCreate(){
-  const name = document.getElementById("fname").value.trim();
-  const pin = document.getElementById("fpin").value.trim();
-  const admin = document.getElementById("fadmin").value.trim();
-  if(name.length<2) return toast("Ponle nombre a la familia");
-  if(!/^\d{4}$/.test(pin)) return toast("El PIN debe tener 4 números");
-  if(admin.length<2) return toast("Pon tu nombre");
-  let famId; const used = () => db.ref("familias/" + famId).get().then(s=>s.exists());
-  (async()=>{ do { famId = code(); } while(await used());
-    await db.ref("familias/" + famId).set({
-      name, pin, admin,
-      kids:{}, tasks:{}, rewards:{}, requests:{}, created: Date.now()
-    });
-    state.famId = famId; state.mode="parent";
-    localStorage.setItem(LS.fam,famId); localStorage.setItem(LS.pin,pin);
-    renderFamilyCreated();
+  state.token = localStorage.getItem(LS.token);
+  if(!state.token){ renderSetup(); return; }
+  (async()=>{
+    try{ state.data = await readData() || {}; }
+    catch(e){ toast(e.message); return; }
+    const role = localStorage.getItem(LS.role);
+    const kidId = localStorage.getItem(LS.kid);
+    if(role==="parent" && state.data.pin){ state.mode="parent"; renderParent(); }
+    else if(role==="kid" && state.data.kids && state.data.kids[kidId]){ state.mode="kid"; state.kidId=kidId; renderKid(); }
+    else renderWelcome();
   })();
 }
 
-function renderFamilyCreated(){
+function renderSetup(){
+  document.body.className = "";
   $app.innerHTML = `
-    <div class="hero fade">
-      <div class="logo logo-anim">🎉</div>
-      <h1>¡Familia creada!</h1>
-      <p>Este es el código. Los chicos lo usan en sus celulares para entrar:</p>
-      <div class="code-box">${state.famId}</div>
-      <div style="height:16px"></div>
-      <button class="btn" onclick="famRef().on('value',s=>{state.data=s.val();renderParent();},()=>{})">Empezar a administrar →</button>
-    </div>`;
-}
-
-function goJoin(){
-  $app.innerHTML = `
-    <div class="fade">
-      <div class="header"><button onclick="renderWelcome()">←</button><h1>Unirme</h1></div>
+    <div class="hero">
+      <div class="logo logo-anim">🏰</div>
+      <h1>Misiones Familiares</h1>
+      <p>Conecta con el repositorio de GitHub para guardar los datos.</p>
       <div class="card">
-        <label>Código de familia (6 letras/números)</label>
-        <input id="jcode" style="text-transform:uppercase" placeholder="EJ: A3K9PL" maxlength="6" autocomplete="off">
+        <label>Token de GitHub (de tu repositorio <b>${esc(GH.owner + "/" + GH.repo)}</b>)</label>
+        <input id="tok" type="password" placeholder="ghp_..." autocomplete="off">
         <div style="height:14px"></div>
-        <button class="btn" onclick="doJoin()">Continuar</button>
+        <button class="btn" id="conn" onclick="doConnect()">Conectar</button>
       </div>
     </div>`;
 }
 
-async function doJoin(){
-  const famId = document.getElementById("jcode").value.trim().toUpperCase();
-  if(famId.length!==6) return toast("Escribe el código de 6 caracteres");
-  const snap = await db.ref("familias/" + famId).get();
-  if(!snap.exists()) return toast("No existe una familia con ese código");
-  state.famId = famId; state.joinFamId = famId;
-  famRef().on("value", s => {
-    state.data = s.val();
-    if(!state.data){ toast("La familia ya no existe"); return; }
-    if(state.mode==="kid") renderKid();
-    else if(state.mode==="parent") renderParent();
-    else renderJoinPick();
-  });
+async function doConnect(){
+  const t = document.getElementById("tok").value.trim();
+  if(!t) return toast("Pega el token");
+  const btn = document.getElementById("conn");
+  btn.textContent = "Conectando…";
+  const prev = state.token; state.token = t;
+  try{
+    const d = await readData();
+    localStorage.setItem(LS.token, t);
+    state.data = d || {};
+    toast("¡Conectado!");
+    renderWelcome();
+  }catch(e){
+    state.token = prev;
+    btn.textContent = "Conectar";
+    toast("Token inválido: " + e.message);
+  }
 }
 
-function renderJoinPick(){
+function renderWelcome(){
+  document.body.className = "";
   const d = state.data || {};
+  const hasFamily = !!d.pin;
   const kids = Object.entries(d.kids || {});
   const kidRow = kids.length ? kids.map(([id,k])=>`
     <div class="kid-pick" onclick="joinAsKid('${id}')">
       <span class="ava">${esc(k.emoji||"🧒")}</span>
       <div><b>${esc(k.name)}</b><br><small>Soy yo</small></div>
       <span class="arrow">→</span>
-    </div>`).join("") : `<div class="empty">Todavía no hay niños creados. Que papá/mamá los agregue primero.<br><span class="big">👨‍👩‍👧‍👦</span></div>`;
+    </div>`).join("") : `<div class="empty">Aún no hay niños. Papá/mamá debe crearlos.<br><span class="big">👨‍👩‍👧‍👦</span></div>`;
   $app.innerHTML = `
-    <div class="fade">
-      <div class="header"><button onclick="renderWelcome()">←</button><h1>${esc(d.name||"Familia")}</h1><span class="badge">${state.famId}</span></div>
-      <div class="section-title">¿Quién eres?</div>
-      ${kidRow}
-      <div style="height:10px"></div>
+    <div class="header">
+      <div><h1>${hasFamily ? esc(d.nombreFamilia||"Mi familia") : "¡Bienvenidos!"}</h1><small><span class="sync">☁️ GitHub</span></small></div>
+      <button onclick="logout()">🚪</button>
+    </div>
+    ${hasFamily ? `
+      <div class="section-title">👨‍👩‍👧‍👦 ¿Quién eres?</div>
       <button class="btn ghost" onclick="goParentPin()">👨‍💼 Soy papá/mamá</button>
-    </div>`;
+      <div style="height:14px"></div>
+      ${kidRow}
+    ` : `
+      <div class="card">
+        <div class="section-title" style="margin-top:0">✨ Crear tu familia</div>
+        <label>Nombre de la familia</label>
+        <input id="cname" placeholder="Ej. Familia Bustos" autocomplete="off">
+        <label>Tu nombre</label>
+        <input id="cadmin" placeholder="Ej. José" autocomplete="off">
+        <label>PIN de papá/mamá (4 números)</label>
+        <input id="cpin" type="password" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
+        <div style="height:14px"></div>
+        <button class="btn" onclick="createFamily()">Crear familia</button>
+      </div>`}`;
 }
 
-function joinAsKid(id){
-  state.kidId = id; state.mode="kid"; localStorage.setItem(LS.kid,id);
-  renderKid();
+async function createFamily(){
+  const nombreFamilia = document.getElementById("cname").value.trim();
+  const admin = document.getElementById("cadmin").value.trim();
+  const pin = document.getElementById("cpin").value.trim();
+  if(nombreFamilia.length<2) return toast("Ponle nombre a la familia");
+  if(admin.length<2) return toast("Pon tu nombre");
+  if(!/^\d{4}$/.test(pin)) return toast("El PIN debe tener 4 números");
+  await mutate(() => {
+    state.data = { nombreFamilia, admin, pin, kids:{}, tasks:{}, rewards:{}, requests:{}, creada: Date.now() };
+    state.mode = "parent"; state.role = "parent"; localStorage.setItem(LS.role,"parent");
+    return { message:"Crear familia", toast:"¡Familia creada! 🎉", confetti:true };
+  });
 }
 
 function goParentPin(){
   $app.innerHTML = `
     <div class="fade">
-      <div class="header"><button onclick="renderJoinPick()">←</button><h1>Modo adulto</h1></div>
+      <div class="header"><button onclick="renderWelcome()">←</button><h1>Modo adulto</h1></div>
       <div class="card">
         <label>PIN de papá/mamá</label>
         <input id="ppin" type="password" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
@@ -349,9 +335,22 @@ function goParentPin(){
 }
 function checkPin(){
   const pin = document.getElementById("ppin").value.trim();
-  if(pin!==state.data.pin) return toast("PIN incorrecto");
-  state.mode="parent"; localStorage.setItem(LS.pin,pin);
+  if(pin !== (state.data.pin||"")) return toast("PIN incorrecto");
+  state.mode="parent"; state.role="parent";
+  localStorage.setItem(LS.role,"parent");
   renderParent();
+}
+
+function joinAsKid(id){
+  state.mode="kid"; state.kidId=id; state.role="kid";
+  localStorage.setItem(LS.role,"kid"); localStorage.setItem(LS.kid,id);
+  renderKid();
+}
+
+function logout(){
+  localStorage.removeItem(LS.role); localStorage.removeItem(LS.kid);
+  state.mode=null; state.kidId=null; state.role=null; state.tab=null;
+  renderWelcome();
 }
 
 const kidOf = id => state.data?.kids?.[id];
@@ -361,10 +360,7 @@ const kidEmoji = id => kidOf(id)?.emoji || "🧒";
 function renderParent(){
   document.body.className = "parent";
   const tab = state.tab || "kids";
-  const tabs = [
-    ["kids","🧒","Niños"],["tasks","⭐","Misiones"],
-    ["rewards","🎁","Premios"],["reqs","📨","Solicitudes"]
-  ];
+  const tabs = [["kids","🧒","Niños"],["tasks","⭐","Misiones"],["rewards","🎁","Premios"],["reqs","📨","Solicitudes"]];
   let content = "";
   if(tab==="kids") content = parentKids();
   if(tab==="tasks") content = parentTasks();
@@ -372,7 +368,7 @@ function renderParent(){
   if(tab==="reqs") content = parentReqs();
   $app.innerHTML = `
     <div class="header">
-      <div><h1>👨‍💼 ${esc(state.data.name||"Mi familia")}</h1><small>Código: ${state.famId}</small></div>
+      <div><h1>👨‍💼 ${esc(state.data.nombreFamilia||"Mi familia")}</h1><small><span class="sync">☁️ GitHub</span></small></div>
       <button onclick="logout()">🚪</button>
     </div>
     ${content}
@@ -380,7 +376,7 @@ function renderParent(){
       ${tabs.map(([id,ico,label])=>`<button class="tab ${tab===id?"on":""}" onclick="setTab('${id}')"><span class="ico">${ico}</span>${label}</button>`).join("")}
     </div>`;
 }
-function setTab(t){ state.tab=t; renderParent(); }
+function setTab(t){ state.tab=t; render(); }
 
 function parentKids(){
   const kids = Object.entries(state.data.kids||{});
@@ -397,7 +393,7 @@ function parentKids(){
     <div class="card">
       <label>Agregar niño/a</label>
       <div class="row">
-        <input id="nk" placeholder="Nombre" autocomplete="off">
+        <input id="nk" placeholder="Nombre (ej. Zamir)" autocomplete="off">
         <input id="ne" placeholder="Emoji" maxlength="4" style="max-width:90px;text-align:center" autocomplete="off">
       </div>
       <div style="height:10px"></div>
@@ -410,14 +406,18 @@ function addKid(){
   const name = document.getElementById("nk").value.trim();
   const emoji = document.getElementById("ne").value.trim() || "🧒";
   if(name.length<2) return toast("Ponle nombre");
-  const id = uid();
-  famRef().child("kids/"+id).set({name,emoji,points:0,created:Date.now()}).then(()=>{
-    toast("¡" + name + " agregado!"); confetti();
+  return mutate(() => {
+    state.data.kids = state.data.kids || {};
+    state.data.kids[uid()] = { name, emoji, points:0, created:Date.now() };
+    return { message:"Agregar niño/a " + name, toast:"¡" + name + " agregado!", confetti:true };
   });
 }
 function adjustPoints(id,delta){
-  const pts = (kidOf(id)?.points||0) + delta;
-  famRef().child("kids/"+id+"/points").set(Math.max(0,pts));
+  return mutate(() => {
+    const pts = Math.max(0, (kidOf(id)?.points||0) + delta);
+    state.data.kids[id].points = pts;
+    return { message:"Ajustar puntos de " + kidName(id), toast: kidName(id) + " ahora tiene " + pts + " pts" };
+  });
 }
 
 function parentTasks(){
@@ -456,9 +456,18 @@ function addTask(){
   const emoji = document.getElementById("te").value.trim() || "⭐";
   const kid = document.getElementById("tk").value;
   if(title.length<2) return toast("Describe la misión");
-  famRef().child("tasks/"+uid()).set({title,points,emoji,kid,created:Date.now()}).then(()=>toast("Misión creada"));
+  return mutate(() => {
+    state.data.tasks = state.data.tasks || {};
+    state.data.tasks[uid()] = { title, points, emoji, kid, created:Date.now() };
+    return { message:"Agregar misión: " + title, toast:"Misión creada" };
+  });
 }
-function del(area,id){ famRef().child(area+"/"+id).remove(); }
+function del(area,id){
+  return mutate(() => {
+    delete state.data[area][id];
+    return { message:"Eliminar de " + area, toast:"Eliminado" };
+  });
+}
 
 function parentRewards(){
   const rewards = Object.entries(state.data.rewards||{});
@@ -488,7 +497,11 @@ function addReward(){
   const emoji = document.getElementById("re").value.trim() || "🎁";
   if(title.length<2) return toast("Describe el premio");
   if(cost<=0) return toast("El costo debe ser mayor a 0");
-  famRef().child("rewards/"+uid()).set({title,cost,emoji}).then(()=>toast("Premio agregado"));
+  return mutate(() => {
+    state.data.rewards = state.data.rewards || {};
+    state.data.rewards[uid()] = { title, cost, emoji };
+    return { message:"Agregar premio: " + title, toast:"Premio agregado" };
+  });
 }
 
 function parentReqs(){
@@ -503,8 +516,8 @@ function parentReqs(){
         <b>${kidName(r.kid)}</b> ${isTask?"completó":"quiere"}: ${esc(r.title)} ${isTask?`(+${r.points} pts)`:`(${r.cost} pts)`}
         <div class="meta">${new Date(r.ts).toLocaleString()}</div>
       </div>
-      <button class="btn mini" style="background:var(--ok)" onclick="resolve('${id}',${isTask})">✓</button>
-      <button class="btn mini danger" onclick="resolve('${id}',null)">✕</button>
+      <button class="btn mini" style="background:var(--ok)" onclick="resolve('${id}',true)">✓</button>
+      <button class="btn mini danger" onclick="resolve('${id}',false)">✕</button>
     </div>`;
   }).join("") : `<div class="empty">Sin solicitudes pendientes.<br><span class="big">😌</span></div>`;
   const hRow = hist.length ? hist.map(([id,r])=>{
@@ -523,23 +536,25 @@ function parentReqs(){
 }
 
 function resolve(id,approve){
-  const r = state.data.requests[id];
-  if(!r) return;
-  const upd = {};
-  if(approve===true && r.type==="task"){
-    const pts = (kidOf(r.kid)?.points||0) + r.points;
-    upd["kids/"+r.kid+"/points"] = pts;
-    upd["requests/"+id+"/status"] = "approved";
-    famRef().update(upd).then(()=>{ toast("¡Puntos otorgados!"); confetti(); });
-  } else if(approve===true && r.type==="reward"){
-    const pts = kidOf(r.kid)?.points||0;
-    if(pts < r.cost) return toast("No le alcanzan los puntos");
-    upd["kids/"+r.kid+"/points"] = pts - r.cost;
-    upd["requests/"+id+"/status"] = "approved";
-    famRef().update(upd).then(()=>{ toast("Premio aprobado 🎉"); confetti(); });
-  } else {
-    famRef().child("requests/"+id+"/status").set("rejected").then(()=>toast("Solicitud rechazada"));
-  }
+  return mutate(() => {
+    const r = state.data.requests[id];
+    if(!r) return { message:"sin cambios", toast:"" };
+    if(approve && r.type==="task"){
+      const pts = (kidOf(r.kid)?.points||0) + r.points;
+      state.data.kids[r.kid].points = pts;
+      r.status = "approved";
+      return { message:"Aprobar misión de " + kidName(r.kid), toast:"¡Puntos otorgados!", confetti:true };
+    }
+    if(approve && r.type==="reward"){
+      const pts = kidOf(r.kid)?.points||0;
+      if(pts < r.cost) return { message:"sin cambios", toast:"No le alcanzan los puntos" };
+      state.data.kids[r.kid].points = pts - r.cost;
+      r.status = "approved";
+      return { message:"Aprobar premio de " + kidName(r.kid), toast:"Premio aprobado 🎉", confetti:true };
+    }
+    r.status = "rejected";
+    return { message:"Rechazar solicitud de " + kidName(r.kid), toast:"Solicitud rechazada" };
+  });
 }
 
 function renderKid(){
@@ -553,7 +568,7 @@ function renderKid(){
   if(tab==="mine") content = kidMine();
   $app.innerHTML = `
     <div class="header">
-      <div><h1>${esc(me?.emoji||"🧒")} ¡Hola, ${esc(me?.name||"amigo")}!</h1><small>${esc(state.data.name||"")}</small></div>
+      <div><h1>${esc(me?.emoji||"🧒")} ¡Hola, ${esc(me?.name||"amigo")}!</h1><small>${esc(state.data.nombreFamilia||"")}</small></div>
       <button onclick="logout()">🚪</button>
     </div>
     <div style="text-align:center;margin:8px 0 16px">
@@ -561,10 +576,9 @@ function renderKid(){
     </div>
     ${content}
     <div class="tabbar">
-      ${tabs.map(([id,ico,label])=>`<button class="tab ${tab===id?"on":""}" onclick="setKidTab('${id}')"><span class="ico">${ico}</span>${label}</button>`).join("")}
+      ${tabs.map(([id,ico,label])=>`<button class="tab ${tab===id?"on":""}" onclick="setTab('${id}')"><span class="ico">${ico}</span>${label}</button>`).join("")}
     </div>`;
 }
-function setKidTab(t){ state.tab=t; renderKid(); }
 
 function kidTasks(){
   const tasks = Object.entries(state.data.tasks||{}).filter(([_,t])=>t.kid==="all"||t.kid===state.kidId);
@@ -582,10 +596,12 @@ function kidTasks(){
   return `<div class="section-title">🎯 Mis misiones</div>${list}`;
 }
 function doTask(id){
-  const t = state.data.tasks[id];
-  famRef().child("requests/"+uid()).set({
-    type:"task", kid:state.kidId, ref:id, title:t.title, points:t.points, status:"pending", ts:Date.now()
-  }).then(()=>{ toast("¡Enviado! ⭐"); confetti(); renderKid(); });
+  return mutate(() => {
+    const t = state.data.tasks[id];
+    state.data.requests = state.data.requests || {};
+    state.data.requests[uid()] = { type:"task", kid:state.kidId, ref:id, title:t.title, points:t.points, status:"pending", ts:Date.now() };
+    return { message:"Misión completada por " + kidName(state.kidId), toast:"¡Enviado! ⭐", confetti:true };
+  });
 }
 
 function kidRewards(){
@@ -608,10 +624,12 @@ function kidRewards(){
   return `<div class="section-title">🎁 Premios que puedes pedir</div>${list}`;
 }
 function wantReward(id){
-  const r = state.data.rewards[id];
-  famRef().child("requests/"+uid()).set({
-    type:"reward", kid:state.kidId, ref:id, title:r.title, cost:r.cost, status:"pending", ts:Date.now()
-  }).then(()=>{ toast("Pedido enviado 🎁"); renderKid(); });
+  return mutate(() => {
+    const r = state.data.rewards[id];
+    state.data.requests = state.data.requests || {};
+    state.data.requests[uid()] = { type:"reward", kid:state.kidId, ref:id, title:r.title, cost:r.cost, status:"pending", ts:Date.now() };
+    return { message:"Premio pedido por " + kidName(state.kidId), toast:"Pedido enviado 🎁" };
+  });
 }
 
 function kidMine(){
@@ -638,6 +656,8 @@ function kidMine(){
 }
 
 boot();
+setInterval(poll, 20000);
+window.addEventListener("focus", poll);
 </script>
 </body>
 </html>
