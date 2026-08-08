@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#6d28d9">
+<title>Misiones Familiares</title>
+<style>
+  :root {
+    --p1:#6d28d9; --p2:#a855f7; --k1:#f59e0b; --k2:#fb7185;
+    --bg:#f3f0ff; --card:#ffffff; --ink:#1f2333; --muted:#7b7f94;
+    --ok:#10b981; --no:#ef4444; --radius:18px;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; padding:0; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--ink); min-height:100vh;
+  }
+  body.parent { background:linear-gradient(160deg,#ede9fe,#e0e7ff 60%,#fae8ff); }
+  body.kid   { background:linear-gradient(160deg,#fff7ed,#ffedd5 60%,#ffe4e6); }
+  #app { max-width:520px; margin:0 auto; padding:14px 14px 90px; }
+
+  .btn {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; border:none; border-radius:14px; padding:15px 18px;
+    font-size:17px; font-weight:700; color:#fff; cursor:pointer;
+    background:linear-gradient(135deg,var(--p1),var(--p2));
+    box-shadow:0 6px 16px rgba(109,40,217,.25);
+  }
+  body.kid .btn { background:linear-gradient(135deg,var(--k1),#f97316); box-shadow:0 6px 16px rgba(245,158,11,.3); }
+  .btn.ghost { background:#fff; color:var(--p1); box-shadow:0 2px 8px rgba(0,0,0,.06); border:2px solid var(--p1); }
+  body.kid .btn.ghost { color:var(--k1); border-color:var(--k1); }
+  .btn.small { padding:10px 14px; font-size:15px; width:auto; border-radius:12px; }
+  .btn.danger { background:linear-gradient(135deg,#f43f5e,#ef4444); box-shadow:none; }
+  .btn.mini { padding:8px 12px; font-size:14px; width:auto; border-radius:10px; }
+
+  input,select {
+    width:100%; padding:14px; font-size:17px; border-radius:12px;
+    border:2px solid #e2e0f0; background:#fff; color:var(--ink); outline:none;
+  }
+  input:focus,select:focus { border-color:var(--p1); }
+  body.kid input:focus,body.kid select:focus { border-color:var(--k1); }
+  label { display:block; font-size:13px; font-weight:700; color:var(--muted); margin:12px 0 5px; }
+
+  .card {
+    background:var(--card); border-radius:var(--radius); padding:16px;
+    box-shadow:0 3px 12px rgba(31,35,51,.06); margin-bottom:12px;
+  }
+  .header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px; padding-top:8px;
+  }
+  .header h1 { font-size:20px; margin:0; }
+  .header small { display:block; color:var(--muted); font-weight:600; }
+  .header button { background:none; border:none; font-size:22px; cursor:pointer; padding:6px; }
+
+  .hero {
+    text-align:center; padding:34px 10px 8px;
+  }
+  .hero .logo { font-size:58px; }
+  .hero h1 { font-size:26px; margin:10px 0 6px; }
+  .hero p { color:var(--muted); margin:0 0 26px; font-size:15px; }
+  .logo-anim { display:inline-block; animation:bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  .tabbar {
+    position:fixed; bottom:0; left:0; right:0; background:#fff;
+    border-top:1px solid #eceaf5; display:flex; z-index:50;
+    max-width:520px; margin:0 auto;
+  }
+  .tab {
+    flex:1; text-align:center; padding:9px 0 12px; cursor:pointer; color:var(--muted);
+    font-size:11px; font-weight:700; border:none; background:none;
+  }
+  .tab .ico { font-size:22px; display:block; margin-bottom:2px; }
+  .tab.on { color:var(--p1); }
+  body.kid .tab.on { color:var(--k1); }
+  .tab.on .ico { transform:scale(1.15); }
+
+  .points-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:linear-gradient(135deg,var(--p1),var(--p2)); color:#fff;
+    padding:8px 16px; border-radius:999px; font-size:20px; font-weight:800;
+    box-shadow:0 6px 16px rgba(109,40,217,.3);
+  }
+  body.kid .points-pill { background:linear-gradient(135deg,var(--k1),#f97316); box-shadow:0 6px 16px rgba(245,158,11,.35); }
+
+  .kid { display:flex; align-items:center; gap:14px; }
+  .kid .ava { font-size:40px; width:56px; height:56px; display:flex; align-items:center; justify-content:center;
+    border-radius:16px; background:#f0edff; }
+  .kid .pts { margin-left:auto; font-weight:800; font-size:18px; }
+  .kid .pts b { color:var(--p1); }
+  body.kid .kid .pts b { color:#f97316; }
+
+  .task, .reward { display:flex; align-items:center; gap:12px; }
+  .task .ico,.reward .ico { font-size:32px; }
+  .task .ttl,.reward .ttl { font-weight:700; font-size:16px; }
+  .task .sub,.reward .sub { font-size:13px; color:var(--muted); font-weight:600; }
+  .task .pts { margin-left:auto; background:#eef9f4; color:#059669; font-weight:800;
+    padding:6px 12px; border-radius:999px; white-space:nowrap; }
+
+  .req { display:flex; align-items:center; gap:10px; }
+  .req .body { flex:1; }
+  .req .body b { font-size:15px; }
+  .req .body .meta { font-size:12px; color:var(--muted); font-weight:600; }
+  .st { font-size:11px; font-weight:800; padding:3px 9px; border-radius:999px; }
+  .st.pending { background:#fef3c7; color:#b45309; }
+  .st.approved { background:#d1fae5; color:#047857; }
+  .st.rejected { background:#fee2e2; color:#b91c1c; }
+
+  .badge { font-size:11px; font-weight:800; padding:4px 10px; border-radius:999px; background:#ede9fe; color:#6d28d9; }
+  body.kid .badge { background:#fef3c7; color:#b45309; }
+
+  .section-title { font-size:15px; font-weight:800; margin:18px 0 10px; display:flex; align-items:center; gap:8px; }
+
+  .empty { text-align:center; color:var(--muted); padding:26px 10px; font-size:15px; font-weight:600; }
+  .empty .big { font-size:44px; display:block; margin-bottom:6px; }
+
+  .toast {
+    position:fixed; left:50%; bottom:90px; transform:translateX(-50%) translateY(20px);
+    background:#1f2333; color:#fff; padding:12px 20px; border-radius:12px;
+    font-weight:700; font-size:15px; opacity:0; pointer-events:none; z-index:99;
+    transition:all .25s; white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .confetti { position:fixed; font-size:22px; pointer-events:none; z-index:98; animation:fly 1.2s ease-out forwards; }
+  @keyframes fly { to { transform:translateY(140px) rotate(360deg); opacity:0; } }
+
+  .fade { animation:fade .2s ease; }
+  @keyframes fade { from { opacity:0; transform:translateY(6px);} to { opacity:1; transform:none;} }
+
+  .code-box { font-size:28px; letter-spacing:6px; font-weight:800; text-align:center; padding:16px; border:2px dashed var(--p1); border-radius:14px; color:var(--p1); }
+  body.kid .code-box { border-color:var(--k1); color:#f97316; }
+  .row { display:flex; gap:10px; }
+  .row > * { flex:1; }
+  .kid-pick { display:flex; align-items:center; gap:12px; padding:14px; border-radius:14px; background:#fff; margin-bottom:10px; box-shadow:0 3px 12px rgba(31,35,51,.06); cursor:pointer; }
+  .kid-pick .ava { font-size:34px; }
+  .kid-pick b { font-size:17px; }
+  .kid-pick small { color:var(--muted); font-weight:600; }
+  .kid-pick .arrow { margin-left:auto; font-size:20px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ===== PEGA AQUI TU CONFIGURACION DE FIREBASE (paso 4 de la guia) ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "PEGA_TU_API_KEY",
+  authDomain: "PEGA_TU_DOMINIO.firebaseapp.com",
+  databaseURL: "https://PEGA_TU_PROYECTO-default-rtdb.firebaseio.com",
+  projectId: "PEGA_TU_PROYECTO",
+  storageBucket: "PEGA_TU_PROYECTO.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "PEGA_TU_APP_ID"
+};
+/* ===================================================================== */
+
+const LS = { fam:"mf_familia", kid:"mf_kid", pin:"mf_pin" };
+const state = { famId:null, kidId:null, mode:null, data:null, tab:null, joinFamId:null };
+let db = null;
+
+const $app = document.getElementById("app");
+const $toast = document.getElementById("toast");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const code = () => { const c="ABCDEFGHJKMNPQRSTUVWXYZ23456789", r=[]; for(let i=0;i<6;i++) r.push(c[Math.floor(Math.random()*c.length)]); return r.join(""); };
+const famRef = () => db.ref("familias/" + state.famId);
+const toast = m => { $toast.textContent=m; $toast.classList.add("show"); setTimeout(()=>$toast.classList.remove("show"),2200); };
+
+function confetti() {
+  const emo=["🎉","⭐","🎊","✨","🌈","🦄","🚀"];
+  for(let i=0;i<14;i++){
+    const s=document.createElement("div");
+    s.className="confetti"; s.textContent=emo[Math.floor(Math.random()*emo.length)];
+    s.style.left=(8+Math.random()*84)+"vw"; s.style.top=(30+Math.random()*20)+"vh";
+    document.body.appendChild(s); setTimeout(()=>s.remove(),1300);
+  }
+}
+
+function loadLocal(){
+  state.famId = localStorage.getItem(LS.fam) || null;
+  state.kidId = localStorage.getItem(LS.kid) || null;
+}
+function saveLocal(){ localStorage.setItem(LS.fam,state.famId); if(state.kidId) localStorage.setItem(LS.kid,state.kidId); }
+function logout(){ localStorage.clear(); location.reload(); }
+
+function boot(){
+  loadLocal();
+  if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith("PEGA_")){
+    renderConfigPending();
+    return;
+  }
+  try{
+    const app = firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+  }catch(e){ renderConfigPending("Hubo un error con la configuración: " + e.message); return; }
+  if(state.famId){
+    famRef().on("value", snap => {
+      state.data = snap.val();
+      if(!state.data){ localStorage.clear(); location.reload(); return; }
+      if(state.kidId && state.data.kids && state.data.kids[state.kidId]){ state.mode="kid"; renderKid(); }
+      else { state.mode="parent"; renderParent(); }
+    });
+  } else {
+    renderWelcome();
+  }
+}
+
+function renderConfigPending(err){
+  $app.innerHTML = `
+    <div class="hero">
+      <div class="logo logo-anim">🏰</div>
+      <h1>Misiones Familiares</h1>
+      <p>${err ? esc(err) : "Falta pegar la configuración de Firebase."}<br>Revisa la guía en el chat para completar el paso 4.</p>
+      <div class="card"><b>Código de la familia:</b> se genera al crear la familia. Para conectar varios celulares, todos deben tener el MISMO código de familia y la MISMA configuración de Firebase.</div>
+    </div>`;
+}
+
+function renderWelcome(){
+  $app.innerHTML = `
+    <div class="hero">
+      <div class="logo logo-anim">🏰</div>
+      <h1>Misiones Familiares</h1>
+      <p>¡Tareas que se convierten en premios!</p>
+      <button class="btn" onclick="goCreate()">✨ Crear mi familia</button>
+      <div style="height:12px"></div>
+      <button class="btn ghost" onclick="goJoin()">🔑 Unirme con un código</button>
+    </div>`;
+}
+
+function goCreate(){
+  $app.innerHTML = `
+    <div class="fade">
+      <div class="header"><button onclick="renderWelcome()">←</button><h1>Crear familia</h1></div>
+      <div class="card">
+        <label>Nombre de la familia</label>
+        <input id="fname" placeholder="Ej. Familia Bustos" autocomplete="off">
+        <label>PIN de papá/mamá (4 números)</label>
+        <input id="fpin" type="password" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
+        <label>Tu nombre</label>
+        <input id="fadmin" placeholder="Ej. José" autocomplete="off">
+        <div style="height:14px"></div>
+        <button class="btn" onclick="doCreate()">Crear familia</button>
+      </div>
+      <div class="card" style="font-size:13px;color:var(--muted)">Después de crear, verás el <b>código de familia</b>: se lo das a los chicos para entrar desde sus celulares.</div>
+    </div>`;
+}
+
+function doCreate(){
+  const name = document.getElementById("fname").value.trim();
+  const pin = document.getElementById("fpin").value.trim();
+  const admin = document.getElementById("fadmin").value.trim();
+  if(name.length<2) return toast("Ponle nombre a la familia");
+  if(!/^\d{4}$/.test(pin)) return toast("El PIN debe tener 4 números");
+  if(admin.length<2) return toast("Pon tu nombre");
+  let famId; const used = () => db.ref("familias/" + famId).get().then(s=>s.exists());
+  (async()=>{ do { famId = code(); } while(await used());
+    await db.ref("familias/" + famId).set({
+      name, pin, admin,
+      kids:{}, tasks:{}, rewards:{}, requests:{}, created: Date.now()
+    });
+    state.famId = famId; state.mode="parent";
+    localStorage.setItem(LS.fam,famId); localStorage.setItem(LS.pin,pin);
+    renderFamilyCreated();
+  })();
+}
+
+function renderFamilyCreated(){
+  $app.innerHTML = `
+    <div class="hero fade">
+      <div class="logo logo-anim">🎉</div>
+      <h1>¡Familia creada!</h1>
+      <p>Este es el código. Los chicos lo usan en sus celulares para entrar:</p>
+      <div class="code-box">${state.famId}</div>
+      <div style="height:16px"></div>
+      <button class="btn" onclick="famRef().on('value',s=>{state.data=s.val();renderParent();},()=>{})">Empezar a administrar →</button>
+    </div>`;
+}
+
+function goJoin(){
+  $app.innerHTML = `
+    <div class="fade">
+      <div class="header"><button onclick="renderWelcome()">←</button><h1>Unirme</h1></div>
+      <div class="card">
+        <label>Código de familia (6 letras/números)</label>
+        <input id="jcode" style="text-transform:uppercase" placeholder="EJ: A3K9PL" maxlength="6" autocomplete="off">
+        <div style="height:14px"></div>
+        <button class="btn" onclick="doJoin()">Continuar</button>
+      </div>
+    </div>`;
+}
+
+async function doJoin(){
+  const famId = document.getElementById("jcode").value.trim().toUpperCase();
+  if(famId.length!==6) return toast("Escribe el código de 6 caracteres");
+  const snap = await db.ref("familias/" + famId).get();
+  if(!snap.exists()) return toast("No existe una familia con ese código");
+  state.famId = famId; state.joinFamId = famId;
+  famRef().on("value", s => {
+    state.data = s.val();
+    if(!state.data){ toast("La familia ya no existe"); return; }
+    if(state.mode==="kid") renderKid();
+    else if(state.mode==="parent") renderParent();
+    else renderJoinPick();
+  });
+}
+
+function renderJoinPick(){
+  const d = state.data || {};
+  const kids = Object.entries(d.kids || {});
+  const kidRow = kids.length ? kids.map(([id,k])=>`
+    <div class="kid-pick" onclick="joinAsKid('${id}')">
+      <span class="ava">${esc(k.emoji||"🧒")}</span>
+      <div><b>${esc(k.name)}</b><br><small>Soy yo</small></div>
+      <span class="arrow">→</span>
+    </div>`).join("") : `<div class="empty">Todavía no hay niños creados. Que papá/mamá los agregue primero.<br><span class="big">👨‍👩‍👧‍👦</span></div>`;
+  $app.innerHTML = `
+    <div class="fade">
+      <div class="header"><button onclick="renderWelcome()">←</button><h1>${esc(d.name||"Familia")}</h1><span class="badge">${state.famId}</span></div>
+      <div class="section-title">¿Quién eres?</div>
+      ${kidRow}
+      <div style="height:10px"></div>
+      <button class="btn ghost" onclick="goParentPin()">👨‍💼 Soy papá/mamá</button>
+    </div>`;
+}
+
+function joinAsKid(id){
+  state.kidId = id; state.mode="kid"; localStorage.setItem(LS.kid,id);
+  renderKid();
+}
+
+function goParentPin(){
+  $app.innerHTML = `
+    <div class="fade">
+      <div class="header"><button onclick="renderJoinPick()">←</button><h1>Modo adulto</h1></div>
+      <div class="card">
+        <label>PIN de papá/mamá</label>
+        <input id="ppin" type="password" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
+        <div style="height:14px"></div>
+        <button class="btn" onclick="checkPin()">Entrar</button>
+      </div>
+    </div>`;
+}
+function checkPin(){
+  const pin = document.getElementById("ppin").value.trim();
+  if(pin!==state.data.pin) return toast("PIN incorrecto");
+  state.mode="parent"; localStorage.setItem(LS.pin,pin);
+  renderParent();
+}
+
+const kidOf = id => state.data?.kids?.[id];
+const kidName = id => kidOf(id)?.name || "Niño/a";
+const kidEmoji = id => kidOf(id)?.emoji || "🧒";
+
+function renderParent(){
+  document.body.className = "parent";
+  const tab = state.tab || "kids";
+  const tabs = [
+    ["kids","🧒","Niños"],["tasks","⭐","Misiones"],
+    ["rewards","🎁","Premios"],["reqs","📨","Solicitudes"]
+  ];
+  let content = "";
+  if(tab==="kids") content = parentKids();
+  if(tab==="tasks") content = parentTasks();
+  if(tab==="rewards") content = parentRewards();
+  if(tab==="reqs") content = parentReqs();
+  $app.innerHTML = `
+    <div class="header">
+      <div><h1>👨‍💼 ${esc(state.data.name||"Mi familia")}</h1><small>Código: ${state.famId}</small></div>
+      <button onclick="logout()">🚪</button>
+    </div>
+    ${content}
+    <div class="tabbar">
+      ${tabs.map(([id,ico,label])=>`<button class="tab ${tab===id?"on":""}" onclick="setTab('${id}')"><span class="ico">${ico}</span>${label}</button>`).join("")}
+    </div>`;
+}
+function setTab(t){ state.tab=t; renderParent(); }
+
+function parentKids(){
+  const kids = Object.entries(state.data.kids||{});
+  const list = kids.length ? kids.map(([id,k])=>`
+    <div class="card kid fade">
+      <div class="ava">${esc(k.emoji||"🧒")}</div>
+      <div><b>${esc(k.name)}</b><br><small>${k.points||0} pts</small></div>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn mini" onclick="adjustPoints('${id}',1)">+1</button>
+        <button class="btn mini danger" onclick="adjustPoints('${id}',-1)">-1</button>
+      </div>
+    </div>`).join("") : `<div class="empty">Aún no hay niños.<br><span class="big">👧</span></div>`;
+  return `
+    <div class="card">
+      <label>Agregar niño/a</label>
+      <div class="row">
+        <input id="nk" placeholder="Nombre" autocomplete="off">
+        <input id="ne" placeholder="Emoji" maxlength="4" style="max-width:90px;text-align:center" autocomplete="off">
+      </div>
+      <div style="height:10px"></div>
+      <button class="btn" onclick="addKid()">Agregar</button>
+    </div>
+    <div class="section-title">👧👦 Tus chicos</div>
+    ${list}`;
+}
+function addKid(){
+  const name = document.getElementById("nk").value.trim();
+  const emoji = document.getElementById("ne").value.trim() || "🧒";
+  if(name.length<2) return toast("Ponle nombre");
+  const id = uid();
+  famRef().child("kids/"+id).set({name,emoji,points:0,created:Date.now()}).then(()=>{
+    toast("¡" + name + " agregado!"); confetti();
+  });
+}
+function adjustPoints(id,delta){
+  const pts = (kidOf(id)?.points||0) + delta;
+  famRef().child("kids/"+id+"/points").set(Math.max(0,pts));
+}
+
+function parentTasks(){
+  const tasks = Object.entries(state.data.tasks||{});
+  const kids = Object.entries(state.data.kids||{});
+  const kidOpt = kids.map(([id,k])=>`<option value="${id}">${esc(k.name)}</option>`).join("");
+  const list = tasks.length ? tasks.map(([id,t])=>{
+    const who = t.kid==="all" ? "Todos" : (kidOf(t.kid)?.name || "—");
+    return `<div class="card task fade">
+      <div class="ico">${esc(t.emoji||"⭐")}</div>
+      <div><div class="ttl">${esc(t.title)}</div><div class="sub">${esc(who)}</div></div>
+      <div class="pts">+${t.points||0}</div>
+      <button class="btn mini danger" onclick="del('tasks','${id}')">✕</button>
+    </div>`;
+  }).join("") : `<div class="empty">Sin misiones aún.<br><span class="big">🎯</span></div>`;
+  return `
+    <div class="card">
+      <label>Nueva misión</label>
+      <input id="tt" placeholder="Ej. Ordenar el cuarto" autocomplete="off">
+      <div class="row">
+        <div><label>Puntos</label><input id="tp" type="number" inputmode="numeric" value="5" style="text-align:center"></div>
+        <div><label>Emoji</label><input id="te" placeholder="🧹" maxlength="4" style="text-align:center"></div>
+        <div><label>¿Quién?</label>
+          <select id="tk"><option value="all">Todos</option>${kidOpt}</select>
+        </div>
+      </div>
+      <div style="height:10px"></div>
+      <button class="btn" onclick="addTask()">Agregar misión</button>
+    </div>
+    <div class="section-title">🎯 Misiones activas</div>
+    ${list}`;
+}
+function addTask(){
+  const title = document.getElementById("tt").value.trim();
+  const points = parseInt(document.getElementById("tp").value)||0;
+  const emoji = document.getElementById("te").value.trim() || "⭐";
+  const kid = document.getElementById("tk").value;
+  if(title.length<2) return toast("Describe la misión");
+  famRef().child("tasks/"+uid()).set({title,points,emoji,kid,created:Date.now()}).then(()=>toast("Misión creada"));
+}
+function del(area,id){ famRef().child(area+"/"+id).remove(); }
+
+function parentRewards(){
+  const rewards = Object.entries(state.data.rewards||{});
+  const list = rewards.length ? rewards.map(([id,r])=>`
+    <div class="card reward fade">
+      <div class="ico">${esc(r.emoji||"🎁")}</div>
+      <div><div class="ttl">${esc(r.title)}</div><div class="sub">Cuesta ${r.cost||0} pts</div></div>
+      <button class="btn mini danger" onclick="del('rewards','${id}')" style="margin-left:auto">✕</button>
+    </div>`).join("") : `<div class="empty">Sin premios aún.<br><span class="big">🎁</span></div>`;
+  return `
+    <div class="card">
+      <label>Nuevo premio</label>
+      <input id="rt" placeholder="Ej. 30 min más de celular" autocomplete="off">
+      <div class="row">
+        <div><label>Costo (pts)</label><input id="rc" type="number" inputmode="numeric" value="20" style="text-align:center"></div>
+        <div><label>Emoji</label><input id="re" placeholder="📱" maxlength="4" style="text-align:center"></div>
+      </div>
+      <div style="height:10px"></div>
+      <button class="btn" onclick="addReward()">Agregar premio</button>
+    </div>
+    <div class="section-title">🎁 Catálogo de premios</div>
+    ${list}`;
+}
+function addReward(){
+  const title = document.getElementById("rt").value.trim();
+  const cost = parseInt(document.getElementById("rc").value)||0;
+  const emoji = document.getElementById("re").value.trim() || "🎁";
+  if(title.length<2) return toast("Describe el premio");
+  if(cost<=0) return toast("El costo debe ser mayor a 0");
+  famRef().child("rewards/"+uid()).set({title,cost,emoji}).then(()=>toast("Premio agregado"));
+}
+
+function parentReqs(){
+  const reqs = Object.entries(state.data.requests||{});
+  const pending = reqs.filter(([_,r])=>r.status==="pending").sort((a,b)=>a[1].ts-b[1].ts);
+  const hist = reqs.filter(([_,r])=>r.status!=="pending").sort((a,b)=>b[1].ts-a[1].ts).slice(0,30);
+  const pRow = pending.length ? pending.map(([id,r])=>{
+    const isTask = r.type==="task";
+    return `<div class="card req fade">
+      <div style="font-size:26px">${isTask ? esc(state.data.tasks?.[r.ref]?.emoji||"⭐") : esc(state.data.rewards?.[r.ref]?.emoji||"🎁")}</div>
+      <div class="body">
+        <b>${kidName(r.kid)}</b> ${isTask?"completó":"quiere"}: ${esc(r.title)} ${isTask?`(+${r.points} pts)`:`(${r.cost} pts)`}
+        <div class="meta">${new Date(r.ts).toLocaleString()}</div>
+      </div>
+      <button class="btn mini" style="background:var(--ok)" onclick="resolve('${id}',${isTask})">✓</button>
+      <button class="btn mini danger" onclick="resolve('${id}',null)">✕</button>
+    </div>`;
+  }).join("") : `<div class="empty">Sin solicitudes pendientes.<br><span class="big">😌</span></div>`;
+  const hRow = hist.length ? hist.map(([id,r])=>{
+    const st = {approved:"✓ Aprobado",rejected:"✕ Rechazado"}[r.status]||r.status;
+    return `<div class="card req fade">
+      <div class="body"><b>${kidName(r.kid)}</b> — ${esc(r.title)}
+        <div class="meta">${new Date(r.ts).toLocaleString()}</div></div>
+      <span class="st ${r.status}">${st}</span>
+    </div>`;
+  }).join("") : "";
+  return `
+    <div class="section-title">📨 Pendientes (${pending.length})</div>
+    ${pRow}
+    <div class="section-title">🕘 Historial</div>
+    ${hRow || `<div class="empty">Aún no hay actividad.</div>`}`;
+}
+
+function resolve(id,approve){
+  const r = state.data.requests[id];
+  if(!r) return;
+  const upd = {};
+  if(approve===true && r.type==="task"){
+    const pts = (kidOf(r.kid)?.points||0) + r.points;
+    upd["kids/"+r.kid+"/points"] = pts;
+    upd["requests/"+id+"/status"] = "approved";
+    famRef().update(upd).then(()=>{ toast("¡Puntos otorgados!"); confetti(); });
+  } else if(approve===true && r.type==="reward"){
+    const pts = kidOf(r.kid)?.points||0;
+    if(pts < r.cost) return toast("No le alcanzan los puntos");
+    upd["kids/"+r.kid+"/points"] = pts - r.cost;
+    upd["requests/"+id+"/status"] = "approved";
+    famRef().update(upd).then(()=>{ toast("Premio aprobado 🎉"); confetti(); });
+  } else {
+    famRef().child("requests/"+id+"/status").set("rejected").then(()=>toast("Solicitud rechazada"));
+  }
+}
+
+function renderKid(){
+  document.body.className = "kid";
+  const tab = state.tab || "tasks";
+  const me = kidOf(state.kidId);
+  const tabs = [["tasks","🎯","Misiones"],["rewards","🎁","Premios"],["mine","🏆","Lo mío"]];
+  let content = "";
+  if(tab==="tasks") content = kidTasks();
+  if(tab==="rewards") content = kidRewards();
+  if(tab==="mine") content = kidMine();
+  $app.innerHTML = `
+    <div class="header">
+      <div><h1>${esc(me?.emoji||"🧒")} ¡Hola, ${esc(me?.name||"amigo")}!</h1><small>${esc(state.data.name||"")}</small></div>
+      <button onclick="logout()">🚪</button>
+    </div>
+    <div style="text-align:center;margin:8px 0 16px">
+      <span class="points-pill">⭐ ${me?.points||0} pts</span>
+    </div>
+    ${content}
+    <div class="tabbar">
+      ${tabs.map(([id,ico,label])=>`<button class="tab ${tab===id?"on":""}" onclick="setKidTab('${id}')"><span class="ico">${ico}</span>${label}</button>`).join("")}
+    </div>`;
+}
+function setKidTab(t){ state.tab=t; renderKid(); }
+
+function kidTasks(){
+  const tasks = Object.entries(state.data.tasks||{}).filter(([_,t])=>t.kid==="all"||t.kid===state.kidId);
+  const myReqs = Object.entries(state.data.requests||{})
+    .filter(([_,r])=>r.kid===state.kidId && r.type==="task" && r.status==="pending")
+    .map(([_,r])=>r.ref);
+  const list = tasks.length ? tasks.map(([id,t])=>{
+    const done = myReqs.includes(id);
+    return `<div class="card task fade">
+      <div class="ico">${esc(t.emoji||"⭐")}</div>
+      <div><div class="ttl">${esc(t.title)}</div><div class="sub">${done?"✅ Enviado a papá/mamá":"Toque cuando lo hagas"}</div></div>
+      <button class="btn small ${done?"":"ghost"}" ${done?"disabled style=\"background:#cbd5e1;box-shadow:none\"":""} onclick="doTask('${id}')">${done?"Listo":"¡Listo!"}</button>
+    </div>`;
+  }).join("") : `<div class="empty">No hay misiones para ti.<br><span class="big">🎯</span></div>`;
+  return `<div class="section-title">🎯 Mis misiones</div>${list}`;
+}
+function doTask(id){
+  const t = state.data.tasks[id];
+  famRef().child("requests/"+uid()).set({
+    type:"task", kid:state.kidId, ref:id, title:t.title, points:t.points, status:"pending", ts:Date.now()
+  }).then(()=>{ toast("¡Enviado! ⭐"); confetti(); renderKid(); });
+}
+
+function kidRewards(){
+  const me = kidOf(state.kidId);
+  const rewards = Object.entries(state.data.rewards||{});
+  const myReqs = Object.entries(state.data.requests||{})
+    .filter(([_,r])=>r.kid===state.kidId && r.type==="reward" && r.status==="pending")
+    .map(([_,r])=>r.ref);
+  const list = rewards.length ? rewards.map(([id,r])=>{
+    const ok = (me?.points||0) >= r.cost;
+    const pending = myReqs.includes(id);
+    return `<div class="card reward fade">
+      <div class="ico">${esc(r.emoji||"🎁")}</div>
+      <div><div class="ttl">${esc(r.title)}</div><div class="sub">${r.cost} pts</div></div>
+      ${pending
+        ? `<span class="st pending" style="margin-left:auto">Enviado</span>`
+        : `<button class="btn small ${ok?"":"ghost"}" ${ok?"":"disabled style=\"background:#cbd5e1;box-shadow:none\" onclick=\"toast('Te faltan puntos 🙈')\""} onclick="wantReward('${id}')">${ok?"Pedir":"Sin pts"}</button>`}
+    </div>`;
+  }).join("") : `<div class="empty">Todavía no hay premios.<br><span class="big">🎁</span></div>`;
+  return `<div class="section-title">🎁 Premios que puedes pedir</div>${list}`;
+}
+function wantReward(id){
+  const r = state.data.rewards[id];
+  famRef().child("requests/"+uid()).set({
+    type:"reward", kid:state.kidId, ref:id, title:r.title, cost:r.cost, status:"pending", ts:Date.now()
+  }).then(()=>{ toast("Pedido enviado 🎁"); renderKid(); });
+}
+
+function kidMine(){
+  const myReqs = Object.entries(state.data.requests||{})
+    .filter(([_,r])=>r.kid===state.kidId)
+    .sort((a,b)=>b[1].ts-a[1].ts).slice(0,20);
+  const rows = myReqs.length ? myReqs.map(([id,r])=>{
+    const st = {pending:"⏳ En espera",approved:"✅ Aprobado",rejected:"❌ Rechazado"}[r.status];
+    const extra = r.type==="task" ? `+${r.points} pts` : `${r.cost} pts`;
+    return `<div class="card req fade">
+      <div class="body"><b>${esc(r.title)}</b> <span class="badge">${extra}</span>
+        <div class="meta">${new Date(r.ts).toLocaleString()}</div></div>
+      <span class="st ${r.status}">${st}</span>
+    </div>`;
+  }).join("") : `<div class="empty">Todavía no hiciste nada.<br><span class="big">🚀</span></div>`;
+  return `
+    <div class="card" style="text-align:center">
+      <div style="font-size:40px">⭐</div>
+      <div style="font-size:34px;font-weight:800">${kidOf(state.kidId)?.points||0}</div>
+      <div style="color:var(--muted);font-weight:600">puntos totales</div>
+    </div>
+    <div class="section-title">🏆 Mis logros</div>
+    ${rows}`;
+}
+
+boot();
+</script>
+</body>
+</html>
