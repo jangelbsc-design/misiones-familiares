@@ -181,7 +181,7 @@ async function readData(){
   if(!res.ok) throw new Error("Error de lectura (" + res.status + ")");
   const j = await res.json();
   state.sha = j.sha;
-  return JSON.parse(b64Decode(j.content));
+  return JSON.parse(b64Decode(j.content).replace(/^\uFEFF/, ""));
 }
 
 async function writeData(message){
@@ -250,7 +250,7 @@ function renderSetup(){
         <div style="height:14px"></div>
         <button class="btn" id="conn" onclick="doConnect()">Conectar</button>
         <div id="conerr" style="display:none;margin-top:14px;background:#fee2e2;border:2px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px;font-size:14px;font-weight:700;white-space:pre-wrap"></div>
-        <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5">El token debe empezar con <b>github_pat_</b> y estar completo (sin espacios). Si ves un error de "conexión", cierra y reabre la app o prueba con otro navegador.<br><small>v3</small></p>
+        <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5">El token debe empezar con <b>github_pat_</b> y estar completo (sin espacios). Si ves un error de "conexión", cierra y reabre la app o prueba con otro navegador.<br><small>v4</small></p>
       </div>
     </div>`;
 }
