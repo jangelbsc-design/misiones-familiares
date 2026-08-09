@@ -199,16 +199,25 @@ async function writeData(message){
 }
 
 async function mutate(applyFn){
-  for(let i=0;i<2;i++){
-    try{
+  state.busy = true;
+  try{
+    for(let i=0;i<10;i++){
       const latest = await readData();
       if(latest) state.data = latest;
       const info = applyFn();
-      if(await writeData(info.message)){ render(); toast(info.toast); if(info.confetti) confetti(); return true; }
-    }catch(e){ toast(e.message); return false; }
+      if(await writeData(info.message)){
+        render(); toast(info.toast); if(info.confetti) confetti(); return true;
+      }
+      await new Promise(r=>setTimeout(r, 300 + i*250));
+    }
+    toast("Hay mucha actividad a la vez, intenta de nuevo");
+    return false;
+  }catch(e){
+    toast("Error al guardar: " + e.message);
+    return false;
+  }finally{
+    state.busy = false;
   }
-  toast("Conflicto de sincronización, intenta de nuevo");
-  return false;
 }
 
 async function poll(){
@@ -250,7 +259,7 @@ function renderSetup(){
         <div style="height:14px"></div>
         <button class="btn" id="conn" onclick="doConnect()">Conectar</button>
         <div id="conerr" style="display:none;margin-top:14px;background:#fee2e2;border:2px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px;font-size:14px;font-weight:700;white-space:pre-wrap"></div>
-        <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5">El token debe empezar con <b>github_pat_</b> y estar completo (sin espacios). Si ves un error de "conexión", cierra y reabre la app o prueba con otro navegador.<br><small>v4</small></p>
+        <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5">El token debe empezar con <b>github_pat_</b> y estar completo (sin espacios). Si ves un error de "conexión", cierra y reabre la app o prueba con otro navegador.<br><small>v5</small></p>
       </div>
     </div>`;
 }
