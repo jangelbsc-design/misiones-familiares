@@ -246,11 +246,20 @@ function renderSetup(){
       <p>Conecta con el repositorio de GitHub para guardar los datos.</p>
       <div class="card">
         <label>Token de GitHub (de tu repositorio <b>${esc(GH.owner + "/" + GH.repo)}</b>)</label>
-        <input id="tok" type="password" placeholder="ghp_..." autocomplete="off">
+        <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
         <div style="height:14px"></div>
         <button class="btn" id="conn" onclick="doConnect()">Conectar</button>
+        <div id="conerr" style="display:none;margin-top:14px;background:#fee2e2;border:2px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px;font-size:14px;font-weight:700;white-space:pre-wrap"></div>
+        <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5">El token debe empezar con <b>github_pat_</b> y estar completo (sin espacios). Si ves un error de "conexión", cierra y reabre la app o prueba con otro navegador.<br><small>v3</small></p>
       </div>
     </div>`;
+}
+
+function showConnError(m){
+  const el = document.getElementById("conerr");
+  if(!el) return;
+  el.textContent = m;
+  el.style.display = "block";
 }
 
 async function doConnect(){
@@ -268,7 +277,12 @@ async function doConnect(){
   }catch(e){
     state.token = prev;
     btn.textContent = "Conectar";
-    toast("Token inválido: " + e.message);
+    let msg = e.message || "Error desconocido";
+    if(/Failed to fetch|NetworkError|Network request failed/i.test(msg)) msg = "No se pudo conectar a GitHub. Revisa que tu celular tenga internet, cierra la app y vuelve a abrirla. (Failed to fetch)";
+    else if(/401/.test(msg)) msg = "El token pegado no es válido o ya expiró. Vuelve a copiarlo completo desde GitHub (empieza con github_pat_). (401)";
+    else if(/403/.test(msg)) msg = "El token no tiene permiso de escritura. En GitHub: Settings > Developer settings > Personal access tokens > el token > Repository permissions > Contents = Read and write. (403)";
+    toast("Token inválido: " + msg);
+    showConnError("❌ " + msg);
   }
 }
 
